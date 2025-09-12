@@ -67,10 +67,20 @@ export default function FileUpload({ onFileUpload, onFileRemove }: FileUploadPro
   }, [handleFileSelect]);
 
   const clearSelection = useCallback(() => {
+    console.log('clearSelection called');
     setSelectedFile(null);
     setError(null);
+    // Reset the file input to allow re-selecting the same file
+    const fileInput = document.getElementById('file-input') as HTMLInputElement;
+    if (fileInput) {
+      fileInput.value = '';
+      console.log('File input value reset');
+    }
     if (onFileRemove) {
+      console.log('Calling onFileRemove');
       onFileRemove();
+    } else {
+      console.log('onFileRemove not provided');
     }
   }, [onFileRemove]);
 
@@ -90,14 +100,26 @@ export default function FileUpload({ onFileUpload, onFileRemove }: FileUploadPro
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
       >
-        <input
-          type="file"
-          accept=".pdf"
-          onChange={handleFileInputChange}
-          className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-          id="file-input"
-          data-testid="file-input"
-        />
+        {!selectedFile && (
+          <input
+            type="file"
+            accept=".pdf"
+            onChange={handleFileInputChange}
+            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+            id="file-input"
+            data-testid="file-input"
+          />
+        )}
+        {selectedFile && (
+          <input
+            type="file"
+            accept=".pdf"
+            onChange={handleFileInputChange}
+            className="hidden"
+            id="file-input"
+            data-testid="file-input"
+          />
+        )}
 
         <div className="flex flex-col items-center space-y-4">
           {selectedFile ? (
@@ -126,10 +148,13 @@ export default function FileUpload({ onFileUpload, onFileRemove }: FileUploadPro
                   <button
                     onClick={(e) => {
                       e.preventDefault();
+                      e.stopPropagation();
+                      console.log('Remove button clicked');
                       clearSelection();
                     }}
                     className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors duration-200"
                     title="Remove file"
+                    type="button"
                   >
                     <X className="h-5 w-5" />
                   </button>
@@ -143,8 +168,14 @@ export default function FileUpload({ onFileUpload, onFileRemove }: FileUploadPro
                   Upload Different File
                 </button>
                 <button
-                  onClick={clearSelection}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    console.log('Remove File button clicked');
+                    clearSelection();
+                  }}
                   className="px-6 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors duration-200 shadow-md hover:shadow-lg"
+                  type="button"
                 >
                   Remove File
                 </button>
