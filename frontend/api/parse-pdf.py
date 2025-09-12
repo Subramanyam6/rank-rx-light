@@ -1,3 +1,4 @@
+from http.server import BaseHTTPRequestHandler
 import json
 import sys
 import os
@@ -27,135 +28,91 @@ except ImportError as e:
             "file": os.path.basename(pdf_path) if pdf_path else "unknown"
         }
 
-def handler(request):
-    """Vercel Python serverless function for PDF parsing"""
-
-    if request.method == 'GET':
+class Handler(BaseHTTPRequestHandler):
+    def do_GET(self):
         # Health check
-        return {
-            'statusCode': 200,
-            'headers': {
-                'Content-Type': 'application/json',
-                'Access-Control-Allow-Origin': '*',
-            },
-            'body': json.dumps({
-                'status': 'healthy',
-                'message': 'PDF parsing API is running'
-            })
-        }
-
-    if request.method == 'POST':
+        self.send_response(200)
+        self.send_header('Content-Type', 'application/json')
+        self.send_header('Access-Control-Allow-Origin', '*')
+        self.end_headers()
+        
+        response = json.dumps({
+            'status': 'healthy',
+            'message': 'PDF parsing API is running'
+        })
+        self.wfile.write(response.encode())
+        
+    def do_POST(self):
         try:
-            # Get the request body (PDF file) - Handle multiple Vercel formats
-            body = None
-
-            # Try different ways to access the request body
-            if hasattr(request, 'body') and request.body:
-                body = request.body
-            elif hasattr(request, 'get') and callable(request.get):
-                # Try to get body from query parameters
-                body_param = request.get('body')
-                if body_param:
-                    body = body_param
-                    # Handle base64 encoded body
-                    if isinstance(body, str):
-                        try:
-                            import base64
-                            body = base64.b64decode(body)
-                        except:
-                            pass  # If it's not base64, use as is
-                else:
-                    # Try other common parameter names
-                    for param in ['file', 'pdf', 'data']:
-                        if request.get(param):
-                            body = request.get(param)
-                            break
-
-            # Additional fallbacks for Vercel environment
-            if not body:
-                if hasattr(request, 'data'):
-                    body = request.data
-                elif hasattr(request, 'raw_body'):
-                    body = request.raw_body
-                elif hasattr(request, 'stream'):
-                    body = request.stream.read()
-
-            # Final check for empty body
-            if not body or (isinstance(body, (bytes, str)) and len(body) == 0):
-                return {
-                    'statusCode': 400,
-                    'headers': {
-                        'Content-Type': 'application/json',
-                        'Access-Control-Allow-Origin': '*',
-                    },
-                    'body': json.dumps({
-                        'error': 'No PDF file provided - body is empty',
-                        'debug': f'Request method: {request.method}, Has body attr: {hasattr(request, "body")}, Has get method: {hasattr(request, "get")}',
-                        'file': 'unknown'
-                    })
-                }
-
+            # Get content length
+            content_length = int(self.headers.get('Content-Length', 0))
+            print(f"Content-Length: {content_length}")
+            
+            if content_length == 0:
+                self._send_error(400, 'No PDF file provided - empty request')
+                return
+                
+            # Read the body
+            body = self.rfile.read(content_length)
+            print(f"Read {len(body)} bytes from request body")
+            
+            # Validate it's a PDF
+            if not body.startswith(b'%PDF'):
+                self._send_error(400, f'Invalid PDF file - does not start with PDF header. Starts with: {body[:20].hex() if len(body) >= 20 else body.hex()}')
+                return
+            
+            print(f"Processing PDF with {len(body)} bytes")
+            
             # Create a temporary file to save the PDF
             with tempfile.NamedTemporaryFile(delete=False, suffix='.pdf') as temp_file:
                 temp_file.write(body)
                 temp_file_path = temp_file.name
-
+                
             try:
                 # Parse the PDF
                 result = parse_pdf_file(temp_file_path)
-
-                return {
-                    'statusCode': 200,
-                    'headers': {
-                        'Content-Type': 'application/json',
-                        'Access-Control-Allow-Origin': '*',
-                        'Access-Control-Allow-Methods': 'POST, GET, OPTIONS',
-                        'Access-Control-Allow-Headers': 'Content-Type',
-                    },
-                    'body': json.dumps(result)
-                }
-
+                print(f"Parse result: {result}")
+                
+                # Send success response
+                self.send_response(200)
+                self.send_header('Content-Type', 'application/json')
+                self.send_header('Access-Control-Allow-Origin', '*')
+                self.send_header('Access-Control-Allow-Methods', 'POST, GET, OPTIONS')
+                self.send_header('Access-Control-Allow-Headers', 'Content-Type')
+                self.end_headers()
+                
+                response = json.dumps(result)
+                self.wfile.write(response.encode())
+                
             finally:
                 # Clean up temporary file
                 if os.path.exists(temp_file_path):
                     os.unlink(temp_file_path)
-
+                    print(f"Cleaned up temporary file: {temp_file_path}")
+                    
         except Exception as e:
-            print(f"Error: {e}")
-            return {
-                'statusCode': 500,
-                'headers': {
-                    'Content-Type': 'application/json',
-                    'Access-Control-Allow-Origin': '*',
-                },
-                'body': json.dumps({
-                    'error': f'Server error: {str(e)}',
-                    'file': 'unknown'
-                })
-            }
-
-    if request.method == 'OPTIONS':
+            print(f"Error in do_POST: {e}")
+            self._send_error(500, f'Server error: {str(e)}')
+    
+    def do_OPTIONS(self):
         # Handle CORS preflight request
-        return {
-            'statusCode': 200,
-            'headers': {
-                'Access-Control-Allow-Origin': '*',
-                'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-                'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-                'Access-Control-Max-Age': '86400',
-            },
-            'body': ''
-        }
-
-    # Method not allowed
-    return {
-        'statusCode': 405,
-        'headers': {
-            'Content-Type': 'application/json',
-            'Access-Control-Allow-Origin': '*',
-        },
-        'body': json.dumps({
-            'error': 'Method not allowed',
-            'allowed_methods': ['GET', 'POST', 'OPTIONS']
+        self.send_response(200)
+        self.send_header('Access-Control-Allow-Origin', '*')
+        self.send_header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
+        self.send_header('Access-Control-Allow-Headers', 'Content-Type, Authorization')
+        self.send_header('Access-Control-Max-Age', '86400')
+        self.end_headers()
+        
+    def _send_error(self, status_code, message):
+        self.send_response(status_code)
+        self.send_header('Content-Type', 'application/json')
+        self.send_header('Access-Control-Allow-Origin', '*')
+        self.end_headers()
+        
+        response = json.dumps({
+            'error': message,
+            'file': 'unknown'
         })
-    }
+        self.wfile.write(response.encode())
+
+# The Handler class above is the main entry point for Vercel
