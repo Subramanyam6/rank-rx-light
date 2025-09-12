@@ -1,7 +1,0 @@
-{
-  "functions": {
-    "api/parse-pdf.py": {
-      "runtime": "@vercel/python@3.9.16"
-    }
-  }
-}
