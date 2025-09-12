@@ -1,75 +1,147 @@
-# USMLE Applicant Ranking System
+# RankRx Light - USMLE Application Ranking System
 
-## Overview
-A lightweight system for parsing and ranking USMLE residency applications using regex-based PDF processing.
+## 🎯 What This Application Does
 
-## Architecture
+**RankRx Light** is a comprehensive tool for USMLE residency applicants to:
+- **Upload and analyze** their USMLE application PDFs using advanced AI-powered parsing
+- **Get instant rankings** by comparing their performance against 200+ synthetic applicants
+- **Receive actionable insights** about their competitiveness in the residency match
+- **Understand their position** with detailed percentile rankings and statistics
 
-### Core Flow
-1. **Realistic Test Data** (`synthetic_applicants.json`)
-   - 200 diverse synthetic applicants with realistic USMLE performance
-   - Covers all edge cases: multiple failures, visa scenarios, ECFMG certification
-   - Used for testing and validation, NOT by parse.py
+### Key Features
+- ✅ **PDF Upload & Parsing**: Drag-and-drop interface with instant analysis
+- ✅ **Smart Ranking**: Compare against realistic synthetic applicant data
+- ✅ **Professional UI**: Modern, responsive design with smooth animations
+- ✅ **Real-time Results**: Instant parsing and ranking calculation
+- ✅ **Edge Case Handling**: Robust parsing for all visa types, failure scenarios, and ECFMG statuses
 
-2. **PDF Parsing Engine** (`parse.py`)
-   - **DOES NOT read synthetic_applicants.json**
-   - Regex-based parsing according to Task_Description.rtf requirements
-   - Handles visa status, USMLE Step 1/2 results, ECFMG certification
-   - Main function: `parse_pdf_file(pdf_path)` for UI integration
+## 🏗️ Architecture Overview
 
-3. **Application Upload** (Future)
-   - UI component for users to upload their application PDFs
-   - Will call `parse_pdf_file()` from parse.py
+### Complete Application Flow
+1. **User Uploads PDF** → Drag-and-drop interface validates and processes files
+2. **AI-Powered Parsing** → Python backend extracts visa status, USMLE scores, ECFMG certification
+3. **Ranking Calculation** → Frontend compares parsed data against 200 synthetic applicants
+4. **Results Display** → Professional UI shows parsed info, rank, percentile, and insights
 
-4. **Results Display** (Future)
-   - UI to show parsed information and ranking
-   - Compare uploaded application against synthetic data for ranking
+### Core Components
+1. **Frontend (Next.js + React)**
+   - Modern UI with Tailwind CSS styling
+   - PDF upload with drag-and-drop
+   - Real-time parsing and ranking display
+   - Responsive design for all devices
 
-## Files
+2. **Backend Parsing Engine** (`parse.py`)
+   - Regex-based PDF parsing according to Task_Description.rtf specifications
+   - Handles complex visa scenarios, USMLE results, ECFMG certification
+   - Main function: `parse_pdf_file(pdf_path)` returns structured JSON data
+
+3. **Ranking System** (`synthetic_applicants.json`)
+   - **200 diverse synthetic applicants** with realistic USMLE performance data
+   - Covers all edge cases: multiple exam failures, visa sponsorship needs, ECFMG scenarios
+   - Used for percentile ranking and competitive analysis
+   - Provides statistical comparison baseline for uploaded applications
+
+4. **Deployment Infrastructure**
+   - Python API deployed on Vercel serverless functions
+   - Frontend deployed on Vercel with automatic builds
+   - Secure file processing with automatic cleanup
+
+## 📁 Key Files
 
 | File | Purpose |
 |------|---------|
-| `synthetic_applicants.json` | Realistic test data (200 applicants) |
-| `parse.py` | PDF parsing engine with regex |
-| `Task_Description.rtf` | Requirements specification |
-| `base_clean.txt` | Base template for parsing |
-| `Haruya Hirota header cuts.pdf` | Sample PDF for testing |
+| `frontend/` | Complete Next.js React application with modern UI |
+| `synthetic_applicants.json` | **200 realistic synthetic applicants** for ranking comparison |
+| `parse.py` | Core PDF parsing engine with advanced regex patterns |
+| `Task_Description.rtf` | Detailed requirements specification for parsing logic |
+| `base_clean.txt` | Template structure for consistent parsing output |
+| `Haruya Hirota header cuts.pdf` | Sample USMLE application PDF for testing |
 
-## Usage
+## 🚀 Quick Start
 
-### Test Parsing Engine
+### For Users (Web Application)
+1. **Visit the deployed application** at your Vercel URL
+2. **Upload your USMLE application PDF** using drag-and-drop
+3. **Get instant analysis** with ranking against 200+ synthetic applicants
+4. **View detailed insights** about your competitive position
+
+### For Developers (Local Development)
+
+#### Frontend Setup
 ```bash
-source .venv/bin/activate
-python3 parse.py  # Tests with sample PDF and saves to parsed_sample.json
+cd frontend
+npm install
+npm run dev  # Runs at http://localhost:3000
 ```
 
-### Parse Any PDF (for UI integration)
-```python
+#### Backend Testing
+```bash
+# Test the PDF parsing engine
+python3 parse.py
+
+# Parse any PDF programmatically
+python3 -c "
 from parse import parse_pdf_file
-result = parse_pdf_file("path/to/your/application.pdf")
-print(result)  # Structured data ready for UI display
+result = parse_pdf_file('path/to/your/application.pdf')
+print(result)
+"
 ```
 
-### Verify Test Data
-```bash
-python3 -c "import json; print(f'Test applicants: {len(json.load(open(\"synthetic_applicants.json\")))}')"
+## 🎯 How the Ranking Works
+
+The application uses a **weighted scoring system** to rank your application:
+
+### Scoring Formula
+```
+Score = 0.55 × Step 2 CK Performance +
+        0.25 × Step 1 Pass Rate +
+        0.10 × Failure History Factor +
+        0.05 × Visa Status Factor +
+        0.05 × ECFMG Certification
 ```
 
-### Key Functions for UI Integration
-- `parse_pdf_file(pdf_path)` - Main function to parse uploaded PDFs
-- Returns structured data: visa info, USMLE results, ECFMG status
-- Handles all edge cases from Task_Description.rtf requirements
+### Ranking Process
+1. **Parse your PDF** → Extract visa status, USMLE scores, ECFMG status
+2. **Calculate your score** → Apply the weighted formula above
+3. **Compare against synthetic data** → Rank against 200 diverse applicants
+4. **Generate percentile** → Show where you stand statistically
+5. **Provide insights** → Actionable recommendations for improvement
 
-## Requirements Met
-- ✅ Visa status parsing (authorized/work needed/sought)
-- ✅ USMLE Step 1 & 2 results (pass/fail, scores, failures)
-- ✅ ECFMG certification status
-- ✅ Regex-based parsing with comprehensive edge case handling
-- ✅ Realistic synthetic data for testing
-- ✅ Server-optimized lightweight architecture
+## ✅ Features & Capabilities
 
-## Next Steps
-1. Implement UI for PDF upload
-2. Add ranking/scoring display
-3. Integrate with web framework
-4. Deploy to production server
+- **📄 PDF Parsing**: Advanced regex-based extraction of complex application data
+- **🏆 Smart Ranking**: Statistical comparison against realistic applicant pool
+- **🎨 Modern UI**: Professional, responsive design with smooth animations
+- **⚡ Real-time Processing**: Instant results with professional loading states
+- **🔒 Secure**: Client-side processing with automatic file cleanup
+- **📱 Responsive**: Works perfectly on desktop, tablet, and mobile
+- **🧪 Comprehensive Testing**: 200 synthetic applicants cover all edge cases
+
+## 🛠️ Technical Implementation
+
+### Scoring Details
+- **Step 2 CK**: Score normalized to 0-1 scale (180-300 range)
+- **Step 1**: Binary pass/fail with failure penalty
+- **Visa Status**: Penalty for sponsorship requirements
+- **ECFMG**: Bonus for certification completion
+- **Failure History**: Progressive penalties for multiple attempts
+
+### Edge Cases Handled
+- Multiple exam failures and retakes
+- Various visa sponsorship scenarios
+- ECFMG certification statuses
+- Incomplete or missing data fields
+- Different PDF formats and layouts
+
+## 🤝 For Residency Applicants
+
+This tool helps you:
+- **Understand your competitiveness** with data-driven rankings
+- **Identify strengths and weaknesses** in your application
+- **Make informed decisions** about retakes or program choices
+- **Compare against peers** with realistic statistical analysis
+- **Get actionable insights** for application strategy
+
+---
+
+**Ready to analyze your USMLE application? Upload your PDF and get instant, professional ranking insights!** 🚀
