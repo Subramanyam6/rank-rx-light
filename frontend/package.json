@@ -23,7 +23,19 @@
     "autoprefixer": "^10.0.1",
     "postcss": "^8.0.9",
     "eslint": "^8",
-    "eslint-config-next": "14.0.4"
+    "eslint-config-next": "14.0.4",
+    "@testing-library/react": "^13.4.0",
+    "@testing-library/jest-dom": "^5.16.5",
+    "@testing-library/user-event": "^14.4.3",
+    "jest": "^27.5.1",
+    "jest-environment-jsdom": "^27.5.1",
+    "msw": "^1.2.1",
+    "supertest": "^6.3.3"
+  },
+  "scripts": {
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage"
   },
   "engines": {
     "node": "22.x"

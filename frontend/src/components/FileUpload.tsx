@@ -92,6 +92,7 @@ export default function FileUpload({ onFileUpload }: FileUploadProps) {
           onChange={handleFileInputChange}
           className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
           id="file-input"
+          data-testid="file-input"
         />
 
         <div className="flex flex-col items-center space-y-4">
