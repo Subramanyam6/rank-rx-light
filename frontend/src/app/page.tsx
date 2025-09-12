@@ -30,7 +30,7 @@ export default function Home() {
       const formData = new FormData();
       formData.append('pdf', file);
 
-      const uploadResponse = await fetch('https://rank-rx-light.vercel.app/api/parse-pdf', {
+      const uploadResponse = await fetch('/api/parse-pdf', {
         method: 'POST',
         body: file,
       });
