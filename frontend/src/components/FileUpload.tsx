@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { Upload, FileText, X, AlertCircle } from 'lucide-react';
 
 interface FileUploadProps {
@@ -66,6 +66,14 @@ export default function FileUpload({ onFileUpload, onFileRemove }: FileUploadPro
     }
   }, [handleFileSelect]);
 
+  // Manage pointer events based on selectedFile state
+  useEffect(() => {
+    const fileInput = document.getElementById('file-input') as HTMLInputElement;
+    if (fileInput) {
+      fileInput.style.pointerEvents = selectedFile ? 'none' : 'auto';
+    }
+  }, [selectedFile]);
+
   const clearSelection = useCallback(() => {
     console.log('clearSelection called');
     setSelectedFile(null);
@@ -99,12 +107,13 @@ export default function FileUpload({ onFileUpload, onFileRemove }: FileUploadPro
         onDrop={handleDrop}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
+        style={{ position: 'relative' }}
       >
         <input
           type="file"
           accept=".pdf"
           onChange={handleFileInputChange}
-          className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+          className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
           id="file-input"
           data-testid="file-input"
         />
@@ -112,7 +121,7 @@ export default function FileUpload({ onFileUpload, onFileRemove }: FileUploadPro
         <div className="flex flex-col items-center space-y-4">
           {selectedFile ? (
             <div className="animate-in slide-in-from-bottom-4 duration-500">
-              <div className="group relative overflow-hidden bg-gradient-to-r from-white via-gray-50 to-white rounded-2xl border border-gray-200/60 shadow-xl hover:shadow-2xl transition-all duration-300">
+              <div className="group relative overflow-hidden bg-gradient-to-r from-white via-gray-50 to-white rounded-2xl border border-gray-200/60 shadow-xl hover:shadow-2xl transition-all duration-300 z-20">
                 {/* Subtle gradient overlay */}
                 <div className="absolute inset-0 bg-gradient-to-r from-blue-50/20 via-transparent to-green-50/20"></div>
                 
@@ -143,14 +152,20 @@ export default function FileUpload({ onFileUpload, onFileRemove }: FileUploadPro
                   </div>
 
                   {/* Action buttons with enhanced styling */}
-                  <div className="flex items-center space-x-3">
+                  <div className="flex items-center space-x-3 relative z-30">
                     <button
                       onClick={(e) => {
                         e.preventDefault();
-                        document.getElementById('file-input')?.click();
+                        e.stopPropagation();
+                        console.log('Upload button clicked');
+                        const fileInput = document.getElementById('file-input') as HTMLInputElement;
+                        if (fileInput) {
+                          fileInput.click();
+                        }
                       }}
                       className="group/btn relative p-3 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-xl transition-all duration-200 hover:scale-110 hover:shadow-lg border border-blue-200/50"
                       title="Upload different file"
+                      type="button"
                     >
                       <div className="absolute -inset-0.5 bg-gradient-to-r from-blue-400 to-blue-600 rounded-xl blur opacity-0 group-hover/btn:opacity-30 transition duration-300"></div>
                       <Upload className="relative h-5 w-5" />
