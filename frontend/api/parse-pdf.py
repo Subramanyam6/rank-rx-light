@@ -3,8 +3,8 @@ import sys
 import os
 import tempfile
 
-# Add the root directory to the Python path to import parse module
-sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))))))))
+# Add the parent directory to the Python path to import parse module
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 try:
     from parse import parse_pdf_file
