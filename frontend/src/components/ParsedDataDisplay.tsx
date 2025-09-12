@@ -14,7 +14,7 @@ export default function ParsedDataDisplay({ data }: ParsedDataDisplayProps) {
     <div className="space-y-6">
       <div className="text-center">
         <h2 className="text-3xl font-bold text-gray-900 mb-2">Application Analysis</h2>
-        <p className="text-gray-600">Successfully parsed your USMLE application</p>
+        <p className="text-gray-600">Successfully parsed your ERAS application</p>
       </div>
 
       {/* Visa Status Card */}

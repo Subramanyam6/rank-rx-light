@@ -1,9 +1,9 @@
-# RankRx Light - USMLE Application Ranking System
+# RankRx Light - ERAS Application Ranking System
 
 ## 🎯 What This Application Does
 
 **RankRx Light** is a comprehensive tool for USMLE residency applicants to:
-- **Upload and analyze** their USMLE application PDFs using advanced AI-powered parsing
+- **Upload and analyze** their ERAS application PDFs using advanced AI-powered parsing
 - **Get instant rankings** by comparing their performance against 200+ synthetic applicants
 - **Receive actionable insights** about their competitiveness in the residency match
 - **Understand their position** with detailed percentile rankings and statistics
@@ -55,13 +55,13 @@
 | `parse.py` | Core PDF parsing engine with advanced regex patterns |
 | `Task_Description.rtf` | Detailed requirements specification for parsing logic |
 | `base_clean.txt` | Template structure for consistent parsing output |
-| `Haruya Hirota header cuts.pdf` | Sample USMLE application PDF for testing |
+| `Haruya Hirota header cuts.pdf` | Sample ERAS application PDF for testing |
 
 ## 🚀 Quick Start
 
 ### For Users (Web Application)
 1. **Visit the deployed application** at your Vercel URL
-2. **Upload your USMLE application PDF** using drag-and-drop
+2. **Upload your ERAS application PDF** using drag-and-drop
 3. **Get instant analysis** with ranking against 200+ synthetic applicants
 4. **View detailed insights** about your competitive position
 
@@ -144,4 +144,4 @@ This tool helps you:
 
 ---
 
-**Ready to analyze your USMLE application? Upload your PDF and get instant, professional ranking insights!** 🚀
+**Ready to analyze your ERAS application? Upload your PDF and get instant, professional ranking insights!** 🚀

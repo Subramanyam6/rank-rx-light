@@ -1,6 +1,6 @@
 # RankRx Light Frontend
 
-A modern, professional React frontend for USMLE application analysis and ranking.
+A modern, professional React frontend for ERAS application analysis and ranking.
 
 ## 🚀 Features
 

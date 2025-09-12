@@ -198,12 +198,12 @@ export default function Home() {
         <div className="text-center mb-16 animate-slide-up">
           <div className="inline-block p-1 bg-gradient-to-r from-blue-500 to-purple-500 rounded-2xl mb-6">
             <div className="bg-white rounded-xl px-6 py-2">
-              <span className="text-sm font-semibold text-gray-700">✨ Advanced USMLE Analysis</span>
+              <span className="text-sm font-semibold text-gray-700">✨ Advanced ERAS Analysis</span>
             </div>
           </div>
           <h2 className="text-5xl font-bold text-gray-900 mb-6 leading-tight">
             Upload Your
-            <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent"> USMLE Application</span>
+            <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent"> ERAS Application</span>
           </h2>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
             Get instant AI-powered analysis and ranking of your residency application.

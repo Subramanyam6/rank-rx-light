@@ -208,7 +208,7 @@ export default function FileUpload({ onFileUpload, onFileRemove }: FileUploadPro
               <div className="space-y-6">
                 <div className="text-center">
                   <h2 className="text-3xl font-bold bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 bg-clip-text text-transparent mb-3">
-                    {isDragOver ? 'Drop your PDF here' : 'Upload your USMLE application'}
+                    {isDragOver ? 'Drop your PDF here' : 'Upload your ERAS application'}
                   </h2>
                   <p className="text-lg text-gray-600 max-w-md mx-auto leading-relaxed">
                     Drag and drop your PDF file here, or{' '}
