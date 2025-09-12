@@ -18,9 +18,9 @@ export default function FileUpload({ onFileUpload }: FileUploadProps) {
       return 'Please upload a PDF file only.';
     }
 
-    // Check file size (limit to 10MB)
-    if (file.size > 10 * 1024 * 1024) {
-      return 'File size must be less than 10MB.';
+    // Check file size (limit to 4MB for Vercel free tier)
+    if (file.size > 4 * 1024 * 1024) {
+      return 'File size must be less than 4MB.';
     }
 
     return null;
@@ -116,9 +116,7 @@ export default function FileUpload({ onFileUpload }: FileUploadProps) {
                   <X className="h-5 w-5 text-gray-500" />
                 </button>
               </div>
-              <p className="text-sm text-gray-600">
-                File uploaded successfully! Processing...
-              </p>
+              <p className="text-sm text-gray-600">Selected file</p>
             </>
           ) : (
             <>
@@ -134,7 +132,7 @@ export default function FileUpload({ onFileUpload }: FileUploadProps) {
                   </label>
                 </p>
                 <div className="text-sm text-gray-500">
-                  <p>• PDF files only (max 10MB)</p>
+                  <p>• PDF files only (max 4MB)</p>
                   <p>• Secure processing with instant results</p>
                 </div>
               </div>

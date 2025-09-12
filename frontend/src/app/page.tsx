@@ -30,13 +30,26 @@ export default function Home() {
       const formData = new FormData();
       formData.append('pdf', file);
 
+      // Prefer sending raw file to match current Python handler, but include headers for Vercel
       const uploadResponse = await fetch('/api/parse-pdf.py', {
         method: 'POST',
+        headers: {
+          'Content-Type': 'application/pdf'
+        },
         body: file,
       });
 
       if (!uploadResponse.ok) {
-        throw new Error('Failed to upload PDF');
+        if (uploadResponse.status === 413) {
+          throw new Error('PDF too large. Please upload a file under 4MB.');
+        }
+        // Try to parse error body for more details
+        try {
+          const err = await uploadResponse.json();
+          throw new Error(err?.error || 'Failed to upload PDF');
+        } catch (_) {
+          throw new Error('Failed to upload PDF');
+        }
       }
 
       const parsedData: ParsedApplication = await uploadResponse.json();
