@@ -100,26 +100,14 @@ export default function FileUpload({ onFileUpload, onFileRemove }: FileUploadPro
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
       >
-        {!selectedFile && (
-          <input
-            type="file"
-            accept=".pdf"
-            onChange={handleFileInputChange}
-            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-            id="file-input"
-            data-testid="file-input"
-          />
-        )}
-        {selectedFile && (
-          <input
-            type="file"
-            accept=".pdf"
-            onChange={handleFileInputChange}
-            className="hidden"
-            id="file-input"
-            data-testid="file-input"
-          />
-        )}
+        <input
+          type="file"
+          accept=".pdf"
+          onChange={handleFileInputChange}
+          className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+          id="file-input"
+          data-testid="file-input"
+        />
 
         <div className="flex flex-col items-center space-y-4">
           {selectedFile ? (
