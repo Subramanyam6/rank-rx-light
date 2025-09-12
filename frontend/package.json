@@ -24,5 +24,8 @@
     "postcss": "^8.0.9",
     "eslint": "^8",
     "eslint-config-next": "14.0.4"
+  },
+  "engines": {
+    "node": "18.x"
   }
 }
