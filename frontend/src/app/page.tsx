@@ -81,6 +81,16 @@ export default function Home() {
     }
   }, []);
 
+  const handleFileRemove = useCallback(() => {
+    setUploadState({
+      isUploading: false,
+      isParsing: false,
+      error: null,
+      parsedData: null,
+      ranking: null,
+    });
+  }, []);
+
   const calculateRanking = async (parsedData: ParsedApplication): Promise<RankingInfo> => {
     try {
       // Load synthetic data
@@ -156,43 +166,54 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
       {/* Header */}
-      <header className="bg-white shadow-lg border-b border-gray-200">
+      <header className="bg-white/80 backdrop-blur-md shadow-lg border-b border-gray-200/50 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-6">
-            <div className="flex items-center space-x-3">
-              <div className="bg-blue-600 rounded-lg p-2">
+            <div className="flex items-center space-x-4 animate-fade-in">
+              <div className="bg-gradient-to-br from-blue-600 to-purple-600 rounded-xl p-3 shadow-lg">
                 <FileText className="h-8 w-8 text-white" />
               </div>
               <div>
-                <h1 className="text-2xl font-bold text-gray-900">RankRx Light</h1>
-                <p className="text-sm text-gray-600">USMLE Application Ranking System</p>
+                <h1 className="text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
+                  RankRx Light
+                </h1>
+                <p className="text-sm text-gray-600 font-medium">AI-Powered Residency Application Analysis</p>
               </div>
             </div>
             <div className="flex items-center space-x-4">
-              <TrendingUp className="h-6 w-6 text-blue-600" />
-              <span className="text-sm font-medium text-gray-700">AI-Powered Analysis</span>
+              <div className="flex items-center space-x-2 bg-blue-50 px-4 py-2 rounded-full border border-blue-200">
+                <TrendingUp className="h-5 w-5 text-blue-600 animate-pulse" />
+                <span className="text-sm font-semibold text-blue-700">AI-Powered Analysis</span>
+              </div>
             </div>
           </div>
         </div>
       </header>
 
       {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
         {/* Hero Section */}
-        <div className="text-center mb-12">
-          <h2 className="text-4xl font-bold text-gray-900 mb-4">
-            Upload Your USMLE Application
+        <div className="text-center mb-16 animate-slide-up">
+          <div className="inline-block p-1 bg-gradient-to-r from-blue-500 to-purple-500 rounded-2xl mb-6">
+            <div className="bg-white rounded-xl px-6 py-2">
+              <span className="text-sm font-semibold text-gray-700">✨ Advanced USMLE Analysis</span>
+            </div>
+          </div>
+          <h2 className="text-5xl font-bold text-gray-900 mb-6 leading-tight">
+            Upload Your
+            <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent"> USMLE Application</span>
           </h2>
-          <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-            Get instant analysis and ranking of your residency application using advanced AI-powered parsing technology.
+          <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
+            Get instant AI-powered analysis and ranking of your residency application.
+            Compare against 200+ synthetic applicants for accurate performance insights.
           </p>
         </div>
 
         {/* Upload Section */}
         <div className="max-w-2xl mx-auto mb-12">
-          <FileUpload onFileUpload={handleFileUpload} />
+          <FileUpload onFileUpload={handleFileUpload} onFileRemove={handleFileRemove} />
 
           {uploadState.isUploading && (
             <div className="mt-6 flex items-center justify-center space-x-3">
@@ -210,49 +231,87 @@ export default function Home() {
 
         {/* Results Section */}
         {uploadState.parsedData && (
-          <div className="space-y-8">
-            <ParsedDataDisplay data={uploadState.parsedData} />
+          <div className="space-y-12 animate-in slide-in-from-bottom-8 duration-700">
+            <div className="bg-white/70 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 p-8">
+              <ParsedDataDisplay data={uploadState.parsedData} />
+            </div>
 
             {uploadState.isParsing && (
-              <div className="flex items-center justify-center space-x-3 py-8">
-                <Loader2 className="h-6 w-6 animate-spin text-blue-600" />
-                <span className="text-lg text-gray-700">Calculating your ranking...</span>
+              <div className="flex flex-col items-center justify-center space-y-4 py-12">
+                <div className="relative">
+                  <Loader2 className="h-12 w-12 animate-spin text-blue-600" />
+                  <div className="absolute inset-0 rounded-full border-4 border-blue-200 animate-ping"></div>
+                </div>
+                <div className="text-center">
+                  <span className="text-xl font-semibold text-gray-700 mb-2 block">Analyzing Your Application</span>
+                  <span className="text-sm text-gray-500">Comparing against 200+ synthetic applicants...</span>
+                </div>
               </div>
             )}
 
             {uploadState.ranking && (
-              <RankingDisplay ranking={uploadState.ranking} />
+              <div className="bg-gradient-to-r from-green-50 to-blue-50 rounded-2xl shadow-xl border border-green-200/50 p-8 animate-in slide-in-from-bottom-4 duration-500">
+                <RankingDisplay ranking={uploadState.ranking} />
+              </div>
             )}
           </div>
         )}
 
         {/* Features Section */}
-        <div className="mt-16 grid grid-cols-1 md:grid-cols-3 gap-8">
-          <div className="text-center p-6 bg-white rounded-xl shadow-sm border border-gray-200">
-            <Upload className="h-12 w-12 text-blue-600 mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">Easy Upload</h3>
-            <p className="text-gray-600">Drag and drop your PDF or click to browse. Secure processing in seconds.</p>
+        <div className="mt-24 grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="group text-center p-8 bg-white/60 backdrop-blur-sm rounded-2xl shadow-lg border border-white/20 hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 card-hover">
+            <div className="mb-6">
+              <div className="inline-flex p-4 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl shadow-lg group-hover:scale-110 transition-transform duration-300">
+                <Upload className="h-8 w-8 text-white" />
+              </div>
+            </div>
+            <h3 className="text-xl font-bold text-gray-900 mb-3">Easy Upload</h3>
+            <p className="text-gray-600 leading-relaxed">Drag and drop your PDF or click to browse. Secure processing with instant feedback.</p>
           </div>
 
-          <div className="text-center p-6 bg-white rounded-xl shadow-sm border border-gray-200">
-            <FileText className="h-12 w-12 text-green-600 mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">Smart Parsing</h3>
-            <p className="text-gray-600">AI-powered extraction of visa status, USMLE scores, and ECFMG certification.</p>
+          <div className="group text-center p-8 bg-white/60 backdrop-blur-sm rounded-2xl shadow-lg border border-white/20 hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 card-hover">
+            <div className="mb-6">
+              <div className="inline-flex p-4 bg-gradient-to-br from-green-500 to-green-600 rounded-2xl shadow-lg group-hover:scale-110 transition-transform duration-300">
+                <FileText className="h-8 w-8 text-white" />
+              </div>
+            </div>
+            <h3 className="text-xl font-bold text-gray-900 mb-3">Smart AI Parsing</h3>
+            <p className="text-gray-600 leading-relaxed">Advanced regex-based extraction of visa status, USMLE scores, and ECFMG certification.</p>
           </div>
 
-          <div className="text-center p-6 bg-white rounded-xl shadow-sm border border-gray-200">
-            <Award className="h-12 w-12 text-purple-600 mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">Instant Ranking</h3>
-            <p className="text-gray-600">Compare against 200+ synthetic applications for accurate ranking analysis.</p>
+          <div className="group text-center p-8 bg-white/60 backdrop-blur-sm rounded-2xl shadow-lg border border-white/20 hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 card-hover">
+            <div className="mb-6">
+              <div className="inline-flex p-4 bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl shadow-lg group-hover:scale-110 transition-transform duration-300">
+                <Award className="h-8 w-8 text-white" />
+              </div>
+            </div>
+            <h3 className="text-xl font-bold text-gray-900 mb-3">Intelligent Ranking</h3>
+            <p className="text-gray-600 leading-relaxed">Compare against 200+ synthetic applicants for accurate percentile ranking and insights.</p>
           </div>
         </div>
       </main>
 
       {/* Footer */}
-      <footer className="bg-white border-t border-gray-200 mt-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="text-center text-gray-600">
-            <p>&copy; 2024 RankRx Light. Built with Next.js and Vercel.</p>
+      <footer className="bg-white/80 backdrop-blur-md border-t border-gray-200/50 mt-24">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+          <div className="text-center">
+            <div className="flex justify-center items-center space-x-6 mb-6">
+              <div className="flex items-center space-x-2">
+                <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
+                  <FileText className="h-4 w-4 text-white" />
+                </div>
+                <span className="font-semibold text-gray-700">RankRx Light</span>
+              </div>
+            </div>
+            <p className="text-gray-600 mb-4">AI-Powered USMLE Application Analysis</p>
+            <div className="flex justify-center space-x-6 text-sm text-gray-500">
+              <span>✨ Advanced AI Parsing</span>
+              <span>•</span>
+              <span>📊 Smart Ranking</span>
+              <span>•</span>
+              <span>🔒 Secure Processing</span>
+            </div>
+            <p className="text-xs text-gray-400 mt-6">&copy; 2024 RankRx Light. Built with Next.js and Vercel.</p>
           </div>
         </div>
       </footer>
