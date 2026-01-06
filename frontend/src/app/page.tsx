@@ -1,13 +1,47 @@
 'use client';
 
 import { useState, useCallback } from 'react';
-import { Upload, FileText, TrendingUp, Award, Loader2 } from 'lucide-react';
+import { Upload, FileText, TrendingUp, Award, Loader2, Download } from 'lucide-react';
 import FileUpload from '@/components/FileUpload';
 import ParsedDataDisplay from '@/components/ParsedDataDisplay';
 import RankingDisplay from '@/components/RankingDisplay';
 import { UploadState, ParsedApplication, RankingInfo } from '@/types';
 
+// Toggle this to false to restore the original interactive experience.
+const MAINTENANCE_MODE = true;
+const PORTFOLIO_FILENAME = 'Chintamadaka, Sreemedha_Architecture Portfolio.pdf';
+
 export default function Home() {
+  if (MAINTENANCE_MODE) {
+    const downloadHref = `/${encodeURIComponent(PORTFOLIO_FILENAME)}`;
+
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 px-4">
+        <div className="max-w-xl w-full bg-white/80 backdrop-blur-md border border-blue-100 rounded-2xl shadow-xl p-10 text-center">
+          <div className="flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-600 to-purple-600 shadow-lg mx-auto mb-6">
+            <FileText className="h-7 w-7 text-white" />
+          </div>
+          <h1 className="text-2xl font-bold text-gray-900 mb-3">
+            Portfolio temporarily available via direct download
+          </h1>
+          <p className="text-gray-600 mb-8 leading-relaxed">
+            We&apos;ve paused the interactive features for now. You can download Sreemedha
+            Chintamadaka&apos;s architecture portfolio directly using the button below.
+          </p>
+          <a
+            href={downloadHref}
+            download={PORTFOLIO_FILENAME}
+            className="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-xl bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold shadow-lg shadow-blue-200 hover:shadow-xl hover:scale-105 transition-all duration-200"
+          >
+            <Download className="h-5 w-5" />
+            Download PDF
+          </a>
+          <p className="text-xs text-gray-500 mt-6">Filename: {PORTFOLIO_FILENAME}</p>
+        </div>
+      </div>
+    );
+  }
+
   const [uploadState, setUploadState] = useState<UploadState>({
     isUploading: false,
     isParsing: false,

@@ -6,7 +6,10 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage"
   },
   "dependencies": {
     "next": "14.0.4",
@@ -31,11 +34,6 @@
     "jest-environment-jsdom": "^27.5.1",
     "msw": "^1.2.1",
     "supertest": "^6.3.3"
-  },
-  "scripts": {
-    "test": "jest",
-    "test:watch": "jest --watch",
-    "test:coverage": "jest --coverage"
   },
   "engines": {
     "node": "22.x"
