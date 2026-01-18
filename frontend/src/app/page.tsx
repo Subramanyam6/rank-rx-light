@@ -8,7 +8,7 @@ import RankingDisplay from '@/components/RankingDisplay';
 import { UploadState, ParsedApplication, RankingInfo } from '@/types';
 
 // Toggle this to false to restore the original interactive experience.
-const MAINTENANCE_MODE = true;
+const MAINTENANCE_MODE = false;
 const PORTFOLIO_FILENAME = 'Chintamadaka, Sreemedha_Architecture Portfolio.pdf';
 
 export default function Home() {
