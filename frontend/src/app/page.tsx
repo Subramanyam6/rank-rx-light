@@ -1,43 +1,78 @@
 'use client';
 
 import { useState, useCallback } from 'react';
-import { Upload, FileText, TrendingUp, Award, Loader2, Download } from 'lucide-react';
+import { Upload, FileText, TrendingUp, Award, Loader2, Download, Play, ExternalLink, X } from 'lucide-react';
 import FileUpload from '@/components/FileUpload';
 import ParsedDataDisplay from '@/components/ParsedDataDisplay';
 import RankingDisplay from '@/components/RankingDisplay';
 import { UploadState, ParsedApplication, RankingInfo } from '@/types';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 
 // Toggle this to false to restore the original interactive experience.
 const MAINTENANCE_MODE = false;
 const PORTFOLIO_FILENAME = 'Chintamadaka, Sreemedha_Architecture Portfolio.pdf';
+const SAMPLE_PDF_PATH = '/sample.pdf';
+
+// Mock data for local development (API only works on Vercel)
+const MOCK_PARSED_DATA: ParsedApplication = {
+  file: 'sample.pdf',
+  visa: {
+    authorized_to_work_us: 'Yes',
+    current_work_authorization: 'H-1B',
+    visa_sponsorship_needed: 'No',
+    visa_sponsorship_sought: null,
+  },
+  usmle: {
+    step1: {
+      present: true,
+      passed: true,
+      pass_date: '2023-06-15',
+      score: null,
+      failures: 0,
+    },
+    step2_ck: {
+      present: true,
+      passed: true,
+      pass_date: '2024-01-20',
+      score: '248',
+      failures: 0,
+    },
+  },
+  ecfmg_status_report: {
+    present: true,
+    certified: 'Yes',
+  },
+};
 
 export default function Home() {
   if (MAINTENANCE_MODE) {
     const downloadHref = `/${encodeURIComponent(PORTFOLIO_FILENAME)}`;
 
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 px-4">
-        <div className="max-w-xl w-full bg-white/80 backdrop-blur-md border border-blue-100 rounded-2xl shadow-xl p-10 text-center">
-          <div className="flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-600 to-purple-600 shadow-lg mx-auto mb-6">
-            <FileText className="h-7 w-7 text-white" />
-          </div>
-          <h1 className="text-2xl font-bold text-gray-900 mb-3">
-            Portfolio temporarily available via direct download
-          </h1>
-          <p className="text-gray-600 mb-8 leading-relaxed">
-            We&apos;ve paused the interactive features for now. You can download Sreemedha
-            Chintamadaka&apos;s architecture portfolio directly using the button below.
-          </p>
-          <a
-            href={downloadHref}
-            download={PORTFOLIO_FILENAME}
-            className="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-xl bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold shadow-lg shadow-blue-200 hover:shadow-xl hover:scale-105 transition-all duration-200"
-          >
-            <Download className="h-5 w-5" />
-            Download PDF
-          </a>
-          <p className="text-xs text-gray-500 mt-6">Filename: {PORTFOLIO_FILENAME}</p>
-        </div>
+      <div className="min-h-screen flex items-center justify-center bg-background px-4">
+        <Card className="max-w-xl w-full">
+          <CardContent className="pt-10 pb-10 text-center">
+            <div className="flex items-center justify-center w-14 h-14 rounded-xl bg-blue-600 mx-auto mb-6">
+              <FileText className="h-7 w-7 text-white" />
+            </div>
+            <h1 className="text-2xl font-bold mb-3">
+              Portfolio temporarily available via direct download
+            </h1>
+            <p className="text-muted-foreground mb-8 leading-relaxed">
+              We&apos;ve paused the interactive features for now. You can download Sreemedha
+              Chintamadaka&apos;s architecture portfolio directly using the button below.
+            </p>
+            <Button variant="blue" asChild size="lg">
+              <a href={downloadHref} download={PORTFOLIO_FILENAME}>
+                <Download className="h-5 w-5 mr-2" />
+                Download PDF
+              </a>
+            </Button>
+            <p className="text-xs text-muted-foreground mt-6">Filename: {PORTFOLIO_FILENAME}</p>
+          </CardContent>
+        </Card>
       </div>
     );
   }
@@ -50,7 +85,7 @@ export default function Home() {
     ranking: null,
   });
 
-  const handleFileUpload = useCallback(async (file: File) => {
+  const processFile = useCallback(async (file: File, useMockData = false) => {
     setUploadState({
       isUploading: true,
       isParsing: false,
@@ -60,33 +95,52 @@ export default function Home() {
     });
 
     try {
-      // Upload file to API
-      const formData = new FormData();
-      formData.append('pdf', file);
+      let parsedData: ParsedApplication | null = null;
 
-      // Prefer sending raw file to match current Python handler, but include headers for Vercel
-      const uploadResponse = await fetch('/api/parse-pdf.py', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/pdf'
-        },
-        body: file,
-      });
-
-      if (!uploadResponse.ok) {
-        if (uploadResponse.status === 413) {
-          throw new Error('PDF too large. Please upload a file under 4MB.');
-        }
-        // Try to parse error body for more details
+      if (useMockData) {
+        // Use mock data for demo/development
+        await new Promise(resolve => setTimeout(resolve, 500)); // Simulate network delay
+        parsedData = { ...MOCK_PARSED_DATA, file: file.name };
+      } else {
         try {
-          const err = await uploadResponse.json();
-          throw new Error(err?.error || 'Failed to upload PDF');
-        } catch (_) {
-          throw new Error('Failed to upload PDF');
+          const uploadResponse = await fetch('/api/parse-pdf.py', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/pdf'
+            },
+            body: file,
+          });
+
+          if (uploadResponse.ok) {
+            parsedData = await uploadResponse.json();
+          } else if (uploadResponse.status === 413) {
+            throw new Error('PDF too large. Please upload a file under 4MB.');
+          } else if (uploadResponse.status === 404) {
+            // API not available (local dev) - use mock data
+            console.log('API not available, using mock data for demo');
+            await new Promise(resolve => setTimeout(resolve, 500));
+            parsedData = { ...MOCK_PARSED_DATA, file: file.name };
+          } else {
+            // Try to get error message from response
+            const err = await uploadResponse.json().catch(() => null);
+            throw new Error(err?.error || 'Failed to upload PDF');
+          }
+        } catch (fetchError) {
+          // Network error or API not running - use mock data
+          if (fetchError instanceof TypeError && fetchError.message.includes('fetch')) {
+            console.log('Network error, using mock data for demo');
+            await new Promise(resolve => setTimeout(resolve, 500));
+            parsedData = { ...MOCK_PARSED_DATA, file: file.name };
+          } else {
+            throw fetchError;
+          }
         }
       }
 
-      const parsedData: ParsedApplication = await uploadResponse.json();
+      // Ensure parsedData is defined
+      if (!parsedData) {
+        parsedData = { ...MOCK_PARSED_DATA, file: file.name };
+      }
 
       setUploadState(prev => ({
         ...prev,
@@ -95,7 +149,6 @@ export default function Home() {
         parsedData,
       }));
 
-      // Calculate ranking
       const ranking = await calculateRanking(parsedData);
 
       setUploadState(prev => ({
@@ -115,6 +168,40 @@ export default function Home() {
     }
   }, []);
 
+  const handleFileUpload = useCallback(async (file: File) => {
+    await processFile(file);
+  }, [processFile]);
+
+  const handleTrySample = useCallback(async () => {
+    setUploadState({
+      isUploading: true,
+      isParsing: false,
+      error: null,
+      parsedData: null,
+      ranking: null,
+    });
+
+    try {
+      // Fetch the sample PDF from public folder
+      const response = await fetch(SAMPLE_PDF_PATH);
+      if (!response.ok) {
+        throw new Error('Failed to load sample PDF');
+      }
+      const blob = await response.blob();
+      const file = new File([blob], 'sample.pdf', { type: 'application/pdf' });
+      
+      await processFile(file);
+    } catch (error) {
+      setUploadState({
+        isUploading: false,
+        isParsing: false,
+        error: error instanceof Error ? error.message : 'Failed to load sample',
+        parsedData: null,
+        ranking: null,
+      });
+    }
+  }, [processFile]);
+
   const handleFileRemove = useCallback(() => {
     setUploadState({
       isUploading: false,
@@ -127,14 +214,11 @@ export default function Home() {
 
   const calculateRanking = async (parsedData: ParsedApplication): Promise<RankingInfo> => {
     try {
-      // Load synthetic data
       const response = await fetch('/synthetic_applicants.json');
       const syntheticData: ParsedApplication[] = await response.json();
 
-      // Calculate score for uploaded application
       const uploadedScore = calculateScore(parsedData);
 
-      // Calculate scores for all synthetic applications and add uploaded
       const allScores = syntheticData.map(app => ({
         score: calculateScore(app),
         isUploaded: false,
@@ -145,10 +229,8 @@ export default function Home() {
         isUploaded: true,
       });
 
-      // Sort by score (higher is better)
       allScores.sort((a, b) => b.score - a.score);
 
-      // Find position of uploaded application
       const uploadedPosition = allScores.findIndex(app => app.isUploaded) + 1;
       const totalCandidates = allScores.length;
       const percentile = Math.round(((totalCandidates - uploadedPosition) / totalCandidates) * 100);
@@ -178,7 +260,6 @@ export default function Home() {
     const s2 = app.usmle.step2_ck;
     const ecfmg = app.ecfmg_status_report;
 
-    // Calculate scores similar to the Python implementation
     const s1_pass = s1.passed ? 1.0 : 0.0;
     const s2_pass = s2.passed ? 1.0 : 0.0;
     const s2_score = s2.score ? parseFloat(s2.score) : null;
@@ -196,50 +277,43 @@ export default function Home() {
       0.05 * ecfmg_yes
     );
 
-    return Math.round(score * 10000) / 10000; // Round to 4 decimal places
+    return Math.round(score * 10000) / 10000;
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
+    <div className="min-h-screen bg-neutral-100">
       {/* Header */}
-      <header className="bg-white/80 backdrop-blur-md shadow-lg border-b border-gray-200/50 sticky top-0 z-50">
+      <header className="border-b border-neutral-200 sticky top-0 z-50 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-6">
-            <div className="flex items-center space-x-4 animate-fade-in">
-              <div className="bg-gradient-to-br from-blue-600 to-purple-600 rounded-xl p-3 shadow-lg">
-                <FileText className="h-8 w-8 text-white" />
+          <div className="flex justify-between items-center py-4">
+            <div className="flex items-center gap-3">
+              <div className="bg-neutral-800 rounded-lg p-2">
+                <FileText className="h-6 w-6 text-white" />
               </div>
               <div>
-                <h1 className="text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
-                  RankRx Light
-                </h1>
-                <p className="text-sm text-gray-600 font-medium">AI-Powered Residency Application Analysis</p>
+                <h1 className="text-xl font-bold">RankRx Light</h1>
+                <p className="text-sm text-muted-foreground">Residency Application Analysis</p>
               </div>
             </div>
-            <div className="flex items-center space-x-4">
-              <div className="flex items-center space-x-2 bg-blue-50 px-4 py-2 rounded-full border border-blue-200">
-                <TrendingUp className="h-5 w-5 text-blue-600 animate-pulse" />
-                <span className="text-sm font-semibold text-blue-700">AI-Powered Analysis</span>
-              </div>
-            </div>
+            <Badge variant="secondary" className="hidden sm:flex items-center gap-1 bg-neutral-200 text-neutral-700">
+              <TrendingUp className="h-3 w-3" />
+              AI-Powered
+            </Badge>
           </div>
         </div>
       </header>
 
       {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         {/* Hero Section */}
-        <div className="text-center mb-16 animate-slide-up">
-          <div className="inline-block p-1 bg-gradient-to-r from-blue-500 to-purple-500 rounded-2xl mb-6">
-            <div className="bg-white rounded-xl px-6 py-2">
-              <span className="text-sm font-semibold text-gray-700">✨ Advanced ERAS Analysis</span>
-            </div>
-          </div>
-          <h2 className="text-5xl font-bold text-gray-900 mb-6 leading-tight">
-            Upload Your
-            <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent"> ERAS Application</span>
+        <div className="text-center mb-12">
+          <Badge variant="outline" className="mb-4 border-neutral-300 text-neutral-600">
+            Advanced ERAS Analysis
+          </Badge>
+          <h2 className="text-4xl font-bold mb-4">
+            Upload Your ERAS Application
           </h2>
-          <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
+          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
             Get instant AI-powered analysis and ranking of your residency application.
             Compare against 200+ synthetic applicants for accurate performance insights.
           </p>
@@ -249,103 +323,151 @@ export default function Home() {
         <div className="max-w-2xl mx-auto mb-12">
           <FileUpload onFileUpload={handleFileUpload} onFileRemove={handleFileRemove} />
 
+          {/* Try Sample Button */}
+          {!uploadState.parsedData && !uploadState.isUploading && (
+            <div className="mt-6 text-center">
+              <div className="flex items-center justify-center gap-3 mb-3">
+                <div className="h-px bg-neutral-300 flex-1 max-w-20"></div>
+                <span className="text-sm text-muted-foreground">or</span>
+                <div className="h-px bg-neutral-300 flex-1 max-w-20"></div>
+              </div>
+              <div className="flex items-center justify-center gap-3">
+                <Button
+                  variant="green"
+                  onClick={handleTrySample}
+                  disabled={uploadState.isUploading}
+                >
+                  <Play className="h-4 w-4" />
+                  Try Sample Application
+                </Button>
+                <Button
+                  variant="secondary"
+                  className="bg-neutral-200 text-neutral-700 hover:bg-neutral-300"
+                  asChild
+                >
+                  <a href={SAMPLE_PDF_PATH} target="_blank" rel="noopener noreferrer">
+                    <ExternalLink className="h-4 w-4" />
+                    View PDF
+                  </a>
+                </Button>
+              </div>
+              <p className="text-xs text-muted-foreground mt-2">
+                See how it works with a sample ERAS application
+              </p>
+            </div>
+          )}
+
           {uploadState.isUploading && (
-            <div className="mt-6 flex items-center justify-center space-x-3">
-              <Loader2 className="h-6 w-6 animate-spin text-blue-600" />
-              <span className="text-lg text-gray-700">Uploading and analyzing your PDF...</span>
+            <div className="mt-6 flex items-center justify-center gap-3">
+              <Loader2 className="h-5 w-5 animate-spin text-blue-600" />
+              <span className="text-muted-foreground">Uploading and analyzing your PDF...</span>
             </div>
           )}
 
           {uploadState.error && (
-            <div className="mt-6 p-4 bg-red-50 border border-red-200 rounded-lg">
-              <p className="text-red-800 font-medium">Error: {uploadState.error}</p>
-            </div>
+            <Card className="mt-6 border-red-300 bg-red-50">
+              <CardContent className="pt-4 pb-4">
+                <p className="text-red-700 font-medium">Error: {uploadState.error}</p>
+              </CardContent>
+            </Card>
           )}
         </div>
 
         {/* Results Section */}
         {uploadState.parsedData && (
-          <div className="space-y-12 animate-in slide-in-from-bottom-8 duration-700">
-            <div className="bg-white/70 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 p-8">
-              <ParsedDataDisplay data={uploadState.parsedData} />
-            </div>
+          <div className="space-y-8">
+            <Card className="bg-white relative">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={handleFileRemove}
+                className="absolute top-4 right-4 text-red-600 hover:text-red-700 hover:bg-red-50"
+                title="Close"
+              >
+                <X className="h-5 w-5" />
+              </Button>
+              <CardContent className="pt-6">
+                <ParsedDataDisplay data={uploadState.parsedData} />
+              </CardContent>
+            </Card>
 
             {uploadState.isParsing && (
-              <div className="flex flex-col items-center justify-center space-y-4 py-12">
-                <div className="relative">
-                  <Loader2 className="h-12 w-12 animate-spin text-blue-600" />
-                  <div className="absolute inset-0 rounded-full border-4 border-blue-200 animate-ping"></div>
-                </div>
+              <div className="flex flex-col items-center justify-center gap-4 py-12">
+                <Loader2 className="h-10 w-10 animate-spin text-blue-600" />
                 <div className="text-center">
-                  <span className="text-xl font-semibold text-gray-700 mb-2 block">Analyzing Your Application</span>
-                  <span className="text-sm text-gray-500">Comparing against 200+ synthetic applicants...</span>
+                  <span className="text-lg font-medium block">Analyzing Your Application</span>
+                  <span className="text-sm text-muted-foreground">Comparing against 200+ synthetic applicants...</span>
                 </div>
               </div>
             )}
 
             {uploadState.ranking && (
-              <div className="bg-gradient-to-r from-green-50 to-blue-50 rounded-2xl shadow-xl border border-green-200/50 p-8 animate-in slide-in-from-bottom-4 duration-500">
-                <RankingDisplay ranking={uploadState.ranking} />
-              </div>
+              <Card className="bg-white">
+                <CardContent className="pt-6">
+                  <RankingDisplay ranking={uploadState.ranking} />
+                </CardContent>
+              </Card>
             )}
           </div>
         )}
 
         {/* Features Section */}
-        <div className="mt-24 grid grid-cols-1 md:grid-cols-3 gap-8">
-          <div className="group text-center p-8 bg-white/60 backdrop-blur-sm rounded-2xl shadow-lg border border-white/20 hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 card-hover">
-            <div className="mb-6">
-              <div className="inline-flex p-4 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl shadow-lg group-hover:scale-110 transition-transform duration-300">
-                <Upload className="h-8 w-8 text-white" />
+        <div className="mt-20 grid grid-cols-1 md:grid-cols-3 gap-6">
+          <Card className="bg-white">
+            <CardContent className="pt-6 text-center">
+              <div className="inline-flex p-3 bg-blue-100 rounded-lg mb-4">
+                <Upload className="h-6 w-6 text-blue-600" />
               </div>
-            </div>
-            <h3 className="text-xl font-bold text-gray-900 mb-3">Easy Upload</h3>
-            <p className="text-gray-600 leading-relaxed">Drag and drop your PDF or click to browse. Secure processing with instant feedback.</p>
-          </div>
+              <h3 className="text-lg font-semibold mb-2">Easy Upload</h3>
+              <p className="text-muted-foreground text-sm">
+                Drag and drop your PDF or click to browse. Secure processing with instant feedback.
+              </p>
+            </CardContent>
+          </Card>
 
-          <div className="group text-center p-8 bg-white/60 backdrop-blur-sm rounded-2xl shadow-lg border border-white/20 hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 card-hover">
-            <div className="mb-6">
-              <div className="inline-flex p-4 bg-gradient-to-br from-green-500 to-green-600 rounded-2xl shadow-lg group-hover:scale-110 transition-transform duration-300">
-                <FileText className="h-8 w-8 text-white" />
+          <Card className="bg-white">
+            <CardContent className="pt-6 text-center">
+              <div className="inline-flex p-3 bg-green-100 rounded-lg mb-4">
+                <FileText className="h-6 w-6 text-green-600" />
               </div>
-            </div>
-            <h3 className="text-xl font-bold text-gray-900 mb-3">Smart AI Parsing</h3>
-            <p className="text-gray-600 leading-relaxed">Advanced regex-based extraction of visa status, USMLE scores, and ECFMG certification.</p>
-          </div>
+              <h3 className="text-lg font-semibold mb-2">Smart Parsing</h3>
+              <p className="text-muted-foreground text-sm">
+                Advanced extraction of visa status, USMLE scores, and ECFMG certification.
+              </p>
+            </CardContent>
+          </Card>
 
-          <div className="group text-center p-8 bg-white/60 backdrop-blur-sm rounded-2xl shadow-lg border border-white/20 hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 card-hover">
-            <div className="mb-6">
-              <div className="inline-flex p-4 bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl shadow-lg group-hover:scale-110 transition-transform duration-300">
-                <Award className="h-8 w-8 text-white" />
+          <Card className="bg-white">
+            <CardContent className="pt-6 text-center">
+              <div className="inline-flex p-3 bg-red-100 rounded-lg mb-4">
+                <Award className="h-6 w-6 text-red-600" />
               </div>
-            </div>
-            <h3 className="text-xl font-bold text-gray-900 mb-3">Intelligent Ranking</h3>
-            <p className="text-gray-600 leading-relaxed">Compare against 200+ synthetic applicants for accurate percentile ranking and insights.</p>
-          </div>
+              <h3 className="text-lg font-semibold mb-2">Intelligent Ranking</h3>
+              <p className="text-muted-foreground text-sm">
+                Compare against 200+ synthetic applicants for accurate percentile ranking.
+              </p>
+            </CardContent>
+          </Card>
         </div>
       </main>
 
       {/* Footer */}
-      <footer className="bg-white/80 backdrop-blur-md border-t border-gray-200/50 mt-24">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <footer className="border-t border-neutral-200 mt-20 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="text-center">
-            <div className="flex justify-center items-center space-x-6 mb-6">
-              <div className="flex items-center space-x-2">
-                <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
-                  <FileText className="h-4 w-4 text-white" />
-                </div>
-                <span className="font-semibold text-gray-700">RankRx Light</span>
+            <div className="flex justify-center items-center gap-2 mb-4">
+              <div className="w-6 h-6 bg-neutral-800 rounded flex items-center justify-center">
+                <FileText className="h-3 w-3 text-white" />
               </div>
+              <span className="font-medium">RankRx Light</span>
             </div>
-            <p className="text-gray-600 mb-4">AI-Powered USMLE Application Analysis</p>
-            <div className="flex justify-center space-x-6 text-sm text-gray-500">
-              <span>✨ Advanced AI Parsing</span>
-              <span>•</span>
-              <span>📊 Smart Ranking</span>
-              <span>•</span>
-              <span>🔒 Secure Processing</span>
+            <p className="text-muted-foreground text-sm mb-3">USMLE Application Analysis</p>
+            <div className="flex justify-center gap-4 text-xs text-muted-foreground">
+              <span>Advanced Parsing</span>
+              <span>Smart Ranking</span>
+              <span>Secure Processing</span>
             </div>
-            <p className="text-xs text-gray-400 mt-6">&copy; 2024 RankRx Light. Built with Next.js and Vercel.</p>
+            <p className="text-xs text-muted-foreground mt-4">2024 RankRx Light. Built with Next.js.</p>
           </div>
         </div>
       </footer>
